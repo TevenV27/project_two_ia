@@ -18,6 +18,7 @@ class Board:
     BLACK_COLOR = '#C9DBB2'
     BORDER_COLOR = '#C9DBB2'
 
+
     def __init__(self):
         """
         Inicializamos la ventana, el lienzo y pintamos las casillas del tablero.
@@ -33,6 +34,9 @@ class Board:
         # Dibujamos y pintamos las casillas del tablero.
         self._paint()
 
+        # Creamos el tablero y lo inicializamos con celdas vacías.
+        self.matrix = [[0] * self.SIZE for _ in range(self.SIZE)]
+
         # Colocamos las fichas de ajedrez en el tablero.
         self._place_pieces()
 
@@ -46,12 +50,14 @@ class Board:
         self.canvas.bind("<B1-Motion>", self._drag)
         self.canvas.bind("<ButtonRelease-1>", self._release)
 
+
     def _init_canvas(self):
         """
         Inicializamos el lienzo con un tamaño específico definido por BOARD_SIZE.
         """
         self.canvas = tk.Canvas(self.window, width=self.BOARD_SIZE, height=self.BOARD_SIZE)
         self.canvas.pack()
+
 
     def _paint(self):
         """
@@ -87,6 +93,7 @@ class Board:
             outline=self.BORDER_COLOR,
         )
 
+
     def _place_pieces(self):
         """
         Ubicamos las fichas de ajedrez en el tablero.
@@ -105,130 +112,67 @@ class Board:
         self.white_queen = tk.PhotoImage(file='./app/images/white_queen.png')
         self.white_rook = tk.PhotoImage(file='./app/images/white_rook.png')
 
-        # Colocamos los peones en las casillas correspondientes.
-        for col in range(self.SIZE):
-            self.canvas.create_image(
-                (col * self.SQUARE_SIZE)
-                + (self.PADDING // 2)
-                + (self.SQUARE_SIZE // 2),
-                self.BOARD_SIZE - (self.PADDING // 2) - (self.SQUARE_SIZE // 2) - self.SQUARE_SIZE,
-                image=self.white_pawn,
-                tags=("piece",),
-            )
-            self.canvas.create_image(
-                (col * self.SQUARE_SIZE)
-                + (self.PADDING // 2)
-                + (self.SQUARE_SIZE // 2),
-                (self.PADDING // 2) + (self.SQUARE_SIZE // 2) + self.SQUARE_SIZE,
-                image=self.black_pawn,
-                tags=("piece",),
-            )
+        for row in range(self.SIZE):
+            for col in range(self.SIZE):
+                # Coordenadas en pixeles.
+                x = col * self.SQUARE_SIZE + self.SQUARE_SIZE // 2 + self.PADDING // 2
+                y = row * self.SQUARE_SIZE + self.SQUARE_SIZE // 2 + self.PADDING // 2
 
-        # Colocamos las torres en las casillas correspondientes.
-        self.canvas.create_image(
-            self.PADDING,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_rook,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.BOARD_SIZE - self.PADDING,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_rook,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.PADDING,
-            self.PADDING,
-            image=self.black_rook,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.BOARD_SIZE - self.PADDING,
-            self.PADDING,
-            image=self.black_rook,
-            tags=("piece",),
-        )
+                # Coordenadas dentro de la matriz.
+                i = (y - (self.PADDING // 2)) // self.SQUARE_SIZE
+                j = (x - (self.PADDING // 2)) // self.SQUARE_SIZE
 
-        # Colocamos los alfínes en las casillas correspondientes.
-        self.canvas.create_image(
-            self.PADDING + 2 * self.SQUARE_SIZE,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_bishop,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.BOARD_SIZE - self.PADDING - 2 * self.SQUARE_SIZE,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_bishop,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.PADDING + 2 * self.SQUARE_SIZE,
-            self.PADDING,
-            image=self.black_bishop,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.BOARD_SIZE - self.PADDING - 2 * self.SQUARE_SIZE,
-            self.PADDING,
-            image=self.black_bishop,
-            tags=("piece",),
-        )
+                # Ubicamos las fichas negras.
+                if (i, j) in [(0, 0), (0, 7)]:
+                    self.canvas.create_image(x, y, image=self.black_rook, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) in [(0, 1), (0, 6)]:
+                    self.canvas.create_image(x, y, image=self.black_knight, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) in [(0, 2), (0, 5)]:
+                    self.canvas.create_image(x, y, image=self.black_bishop, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) == (0, 3):
+                    self.canvas.create_image(x, y, image=self.black_queen, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) == (0, 4):
+                    self.canvas.create_image(x, y, image=self.black_king, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) in [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7)]:
+                    self.canvas.create_image(x, y, image=self.black_pawn, tags=("piece"))
+                    self.matrix[i][j] = 1
 
-        # Colocamos los caballos en las casillas correspondientes.
-        self.canvas.create_image(
-            self.PADDING + self.SQUARE_SIZE,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_knight,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.BOARD_SIZE - self.PADDING - self.SQUARE_SIZE,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_knight,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.PADDING + self.SQUARE_SIZE,
-            self.PADDING,
-            image=self.black_knight,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.BOARD_SIZE - self.PADDING - self.SQUARE_SIZE,
-            self.PADDING,
-            image=self.black_knight,
-            tags=("piece",),
-        )
+                # Ubicamos las fichas blancas.
+                if (i, j) in [(7, 0), (7, 7)]:
+                    self.canvas.create_image(x, y, image=self.white_rook, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) in [(7, 1), (7, 6)]:
+                    self.canvas.create_image(x, y, image=self.white_knight, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) in [(7, 2), (7, 5)]:
+                    self.canvas.create_image(x, y, image=self.white_bishop, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) == (7, 3):
+                    self.canvas.create_image(x, y, image=self.white_queen, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) == (7, 4):
+                    self.canvas.create_image(x, y, image=self.white_king, tags=("piece"))
+                    self.matrix[i][j] = 1
+                elif (i, j) in [(6, 0), (6, 1), (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7)]:
+                    self.canvas.create_image(x, y, image=self.white_pawn, tags=("piece"))
+                    self.matrix[i][j] = 1
 
-        # Colocamos las reinas en las casillas correspondientes.
-        self.canvas.create_image(
-            self.PADDING + 3 * self.SQUARE_SIZE,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_queen,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.PADDING + 3 * self.SQUARE_SIZE,
-            self.PADDING,
-            image=self.black_queen,
-            tags=("piece",),
-        )
 
-        # Colocamos los reyes en las casillas correspondientes.
-        self.canvas.create_image(
-            self.PADDING + 4 * self.SQUARE_SIZE,
-            self.BOARD_SIZE - self.PADDING,
-            image=self.white_king,
-            tags=("piece",),
-        )
-        self.canvas.create_image(
-            self.PADDING + 4 * self.SQUARE_SIZE,
-            self.PADDING,
-            image=self.black_king,
-            tags=("piece",),
-        )
+    def _print_matrix(self):
+        """
+        Método auxiliar que imprime la matriz que representa al tablero.
+        """
+        for row in range(self.SIZE):
+            for col in range(self.SIZE):
+                print(self.matrix[row][col], end='  ')
+            print()
+        print()
+
 
     def _start_drag(self, event):
         """
@@ -243,6 +187,12 @@ class Board:
             self.last_x = x
             self.last_y = y
 
+            # Actualizamos la matrix que representa el tablero de juego.
+            i = int((self.last_y - self.PADDING // 2) // self.SQUARE_SIZE)
+            j = int((self.last_x - self.PADDING // 2) // self.SQUARE_SIZE)
+            self.matrix[i][j] = 0
+
+
     def _drag(self, event):
         """
         Realiza el arrastre de la pieza seleccionada.
@@ -254,6 +204,7 @@ class Board:
         self.canvas.move(self.selected_piece, dx, dy)
         self.last_x = x
         self.last_y = y
+
 
     def _release(self, event):
         """
@@ -269,6 +220,13 @@ class Board:
         self.selected_piece = None
         self.last_x = None
         self.last_y = None
+
+        # Actualizamos la matrix que representa el tablero de juego.
+        i = int((y_center - self.PADDING // 2) // self.SQUARE_SIZE)
+        j = int((x_center - self.PADDING // 2) // self.SQUARE_SIZE)
+        self.matrix[i][j] = 1
+
+        self._print_matrix()
 
 
 if __name__ == '__main__':
