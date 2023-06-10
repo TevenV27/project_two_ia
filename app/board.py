@@ -17,9 +17,9 @@ class Board:
     BOARD_SIZE = 8 * SQUARE_SIZE + (MARGIN * 2)
 
     WHITE_COLOR = '#F6FFDE'
-    BLACK_COLOR = '#C9DBB2'
+    BLACK_COLOR = '#769656'
     BORDER_COLOR = '#C9DBB2'
-    FOCUSED_COLOR = '#FCFFA6'
+    FOCUSED_COLOR = '#F6F668'
 
     def __init__(self):
         """
@@ -250,7 +250,8 @@ class Board:
                     if image_path:
                          # Si la ruta existe, creamos la imagen en el lienzo.
                         image = tk.PhotoImage(file=image_path)
-                        self.images.append(image)
+                        resized_image = image.subsample(image.width() // 45, image.height() // 45)
+                        self.images.append(resized_image)
 
                         # Definimos etiquetas para el tipo de jugador y ficha.
                         name_parts = piece_name.split('_')
@@ -258,7 +259,7 @@ class Board:
                         piece_type = name_parts[1]  # e.g. king
 
                         self.canvas.create_image(
-                            x, y, image=image, tags=('piece', player, piece_type))
+                            x, y, image=resized_image, tags=('piece', player, piece_type))
 
                         # Actualizamos la matriz colocando en la posición dada la ficha.
                         self.matrix[i][j] = (self.piece_score[piece_type], player)
@@ -498,7 +499,7 @@ class Board:
             # Obtenemos las coordenadas de la celda.
             i, j = move
             x1, y1, x2, y2 = self._get_coords(i, j)
-            x1, y1, x2, y2 = (x1 + 25), (y1 + 25), (x2 - 25), (y2 - 25)
+            x1, y1, x2, y2 = (x1 + 41), (y1 + 41), (x2 - 41), (y2 - 41)
 
             # Creamos el borde resaltado.
             item = self.canvas.create_oval(x1, y1, x2, y2, fill='#b4c5a0', outline='')
@@ -677,7 +678,10 @@ class Board:
         Devuelve los movimientos posibles del peón.
         """
 
-        # Se 
+        # Se crean dos listas las cuales contienen las posiciones iniciales de los peones
+        # para asi aplicar la logica de que cuando un peon esta en su posicion inicial este puede moverse hacia delante 
+        # hasta dos casillas, pero cuando sale de la posicion inicial, estos solo pueden moverse una casilla hacia adelante.
+
         DEFAULT_PAWN_WHITE_POSITION = [(6,0),(6,1),(6,2),(6,3),(6,4),(6,5),(6,6),(6,7)];
         DEFAULT_PAWN_BLACK_POSITION = [(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7)];
 
@@ -687,24 +691,32 @@ class Board:
         # Las blancas se mueven hacia arriba, las negras hacia abajo.
         direction = -1 if color == 'white' else 1
 
-        # Verificamos si la celda de al frente está dentro de los límites y vacía.
-        
+        #
+
         if (direction == -1):
+
+            # Verificamos si la celda de al frente está dentro de los límites y vacía.
             new_row = row + direction
             if 0 <= new_row <= 7 and self.matrix[new_row][col][0] == 0:
-
+                # Si la posicion inicial del peon blanco se encuentra en la lista de posiciones iniciales
+                # Se permite que el peon pueda moverse dos casillas hacia adelante
                 if (row,col) in DEFAULT_PAWN_WHITE_POSITION:
                     
                     moves.append((new_row, col))
                     moves.append((new_row-1, col))
                     
                 else:
+                    # De lo contrario se le permite solo moverse una casilla hacia adelante 
                     moves.append((new_row, col))
                 
                 
         else:
+            # Verificamos si la celda de al frente está dentro de los límites y vacía.
             new_row = row + direction
+            # Si la posicion inicial del peon blanco se encuentra en la lista de posiciones iniciales.
+            # Se permite que el peon pueda moverse dos casillas hacia adelante.
             if 0 <= new_row <= 7 and self.matrix[new_row][col][0] == 0:
+                
                 if (row,col) in DEFAULT_PAWN_BLACK_POSITION:
 
                     moves.append((new_row, col))
@@ -712,6 +724,7 @@ class Board:
                     
                     
                 else:
+                    # De lo contrario se le permite solo moverse una casilla hacia adelante.
                     moves.append((new_row, col))
 
         # Los peones pueden comer diagonal.
