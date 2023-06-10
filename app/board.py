@@ -21,7 +21,6 @@ class Board:
     BORDER_COLOR = '#C9DBB2'
     FOCUSED_COLOR = '#FCFFA6'
 
-
     def __init__(self):
         """
         Inicializa la ventana, las variables de instancia y el lienzo,
@@ -673,19 +672,47 @@ class Board:
 
 
     def _get_pawn_moves(self, row:int, col:int, color:str):
+        
         """
         Devuelve los movimientos posibles del peón.
         """
+
+        # Se 
+        DEFAULT_PAWN_WHITE_POSITION = [(6,0),(6,1),(6,2),(6,3),(6,4),(6,5),(6,6),(6,7)];
+        DEFAULT_PAWN_BLACK_POSITION = [(1,0),(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7)];
+
         moves = [(row, col)]
         player = self._get_selected_piece_owner()
-
+        
         # Las blancas se mueven hacia arriba, las negras hacia abajo.
         direction = -1 if color == 'white' else 1
 
         # Verificamos si la celda de al frente está dentro de los límites y vacía.
-        new_row = row + direction
-        if 0 <= new_row <= 7 and self.matrix[new_row][col][0] == 0:
-            moves.append((new_row, col))
+        
+        if (direction == -1):
+            new_row = row + direction
+            if 0 <= new_row <= 7 and self.matrix[new_row][col][0] == 0:
+
+                if (row,col) in DEFAULT_PAWN_WHITE_POSITION:
+                    
+                    moves.append((new_row, col))
+                    moves.append((new_row-1, col))
+                    
+                else:
+                    moves.append((new_row, col))
+                
+                
+        else:
+            new_row = row + direction
+            if 0 <= new_row <= 7 and self.matrix[new_row][col][0] == 0:
+                if (row,col) in DEFAULT_PAWN_BLACK_POSITION:
+
+                    moves.append((new_row, col))
+                    moves.append((new_row+1, col))
+                    
+                    
+                else:
+                    moves.append((new_row, col))
 
         # Los peones pueden comer diagonal.
         capture_moves = [(new_row, col - 1), (new_row, col + 1)]
