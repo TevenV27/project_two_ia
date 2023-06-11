@@ -499,7 +499,7 @@ class Board:
             # Obtenemos las coordenadas de la celda.
             i, j = move
             x1, y1, x2, y2 = self._get_coords(i, j)
-            x1, y1, x2, y2 = (x1 + 41), (y1 + 41), (x2 - 41), (y2 - 41)
+            x1, y1, x2, y2 = (x1 + 52), (y1 + 52), (x2 - 52), (y2 - 52)
 
             # Creamos el borde resaltado.
             item = self.canvas.create_oval(x1, y1, x2, y2, fill='#b4c5a0', outline='')
