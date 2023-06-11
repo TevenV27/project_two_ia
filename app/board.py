@@ -13,7 +13,7 @@ class Board:
     MARGIN = 30
 
     SIZE = 8
-    SQUARE_SIZE = 60
+    SQUARE_SIZE = 80
     BOARD_SIZE = 8 * SQUARE_SIZE + (MARGIN * 2)
 
     WHITE_COLOR = '#F6FFDE'
@@ -250,7 +250,7 @@ class Board:
                     if image_path:
                          # Si la ruta existe, creamos la imagen en el lienzo.
                         image = tk.PhotoImage(file=image_path)
-                        resized_image = image.subsample(image.width() // 45, image.height() // 45)
+                        resized_image = image.subsample(image.width() // 60, image.height() // 60)
                         self.images.append(resized_image)
 
                         # Definimos etiquetas para el tipo de jugador y ficha.
