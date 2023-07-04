@@ -1,5 +1,7 @@
 import tkinter as tk
 from itertools import cycle
+import chess
+from utils import PIECE_IMAGES
 
 
 
@@ -54,17 +56,19 @@ class Board:
         Inicializa las variables de instancia.
         """
         # Jugadores existentes.
-        self.players = cycle(['white', 'black'])
+        self.players = cycle(['WHITE', 'BLACK'])
 
         # Próximo jugador. Cada vez que se llama devuelve el siguiente elemento de la lista.
         self.next_player = next(self.players)
 
         # Jugador actual. Inician las blancas.
-        self.current_player = 'white'
+        self.current_player = 'WHITE'
 
         # Matriz numérica que representa el tablero.
-        # Cada elemento de la matriz corresponde a (puntaje_ficha, color_ficha)
-        self.matrix = [[(0, 0)] * self.SIZE for _ in range(self.SIZE)]
+        self.board = chess.Board()
+
+        # Lista de objetos que representan las fichas del tablero.
+        self.images = []
 
         # Celdas que están enfocadas en un momento dado.
         # Permite enfocar los posibles movimientos de una ficha seleccionada.
@@ -78,75 +82,6 @@ class Board:
         self.origin_y = None
         self.last_x = None
         self.last_y = None
-
-        # Lista de objetos que representan las fichas del tablero.
-        self.images = []
-
-        # Rutas a las imágenes de las fichas de ajedrez.
-        self.image_paths = {
-            'black_bishop': './app/images/black_bishop.png',
-            'black_king': './app/images/black_king.png',
-            'black_knight': './app/images/black_knight.png',
-            'black_pawn': './app/images/black_pawn.png',
-            'black_queen': './app/images/black_queen.png',
-            'black_rook': './app/images/black_rook.png',
-
-            'white_bishop': './app/images/white_bishop.png',
-            'white_king': './app/images/white_king.png',
-            'white_knight': './app/images/white_knight.png',
-            'white_pawn': './app/images/white_pawn.png',
-            'white_queen': './app/images/white_queen.png',
-            'white_rook': './app/images/white_rook.png',
-        }
-
-        # Ubicación de cada ficha en el tablero de ajedrez.
-        self.piece_mapping = {
-            (0, 0): 'black_rook',
-            (0, 1): 'black_knight',
-            (0, 2): 'black_bishop',
-            (0, 3): 'black_queen',
-            (0, 4): 'black_king',
-            (0, 5): 'black_bishop',
-            (0, 6): 'black_knight',
-            (0, 7): 'black_rook',
-
-            (1, 0): 'black_pawn',
-            (1, 1): 'black_pawn',
-            (1, 2): 'black_pawn',
-            (1, 3): 'black_pawn',
-            (1, 4): 'black_pawn',
-            (1, 5): 'black_pawn',
-            (1, 6): 'black_pawn',
-            (1, 7): 'black_pawn',
-
-            (7, 0): 'white_rook',
-            (7, 1): 'white_knight',
-            (7, 2): 'white_bishop',
-            (7, 3): 'white_queen',
-            (7, 4): 'white_king',
-            (7, 5): 'white_bishop',
-            (7, 6): 'white_knight',
-            (7, 7): 'white_rook',
-
-            (6, 0): 'white_pawn',
-            (6, 1): 'white_pawn',
-            (6, 2): 'white_pawn',
-            (6, 3): 'white_pawn',
-            (6, 4): 'white_pawn',
-            (6, 5): 'white_pawn',
-            (6, 6): 'white_pawn',
-            (6, 7): 'white_pawn',
-        }
-
-        # Puntaje de cada ficha de ajedrez.
-        self.piece_score = {
-            'bishop': 3,
-            'king': 10,
-            'knight': 3,
-            'pawn': 1,
-            'queen': 9,
-            'rook': 5,
-        }
 
 
     def _init_canvas(self):
@@ -232,6 +167,11 @@ class Board:
         """
         Ubicamos las fichas de ajedrez en el tablero.
         """
+        boardM = []
+        for i in range(8):
+            arr = [str(self.board.piece_at(chess.Square((i*8+j)))) for j in range(8)]
+            boardM.insert(0,arr)
+
         for row in range(self.SIZE):
             for col in range(self.SIZE):
                 # Obtenemos las coordenadas en pixeles.
@@ -241,28 +181,22 @@ class Board:
                 i, j = self._get_pos(x, y)
 
                 # Obtenemos el nombre de la pieza
-                piece_name = self.piece_mapping.get((i, j))
+                piece = boardM[i][j]
 
-                if piece_name:
+                if piece != 'None':
                     # Obtenemos la ruta de la imagen.
-                    image_path = self.image_paths.get(piece_name)
+                    image_path = PIECE_IMAGES[piece]
 
                     if image_path:
                          # Si la ruta existe, creamos la imagen en el lienzo.
                         image = tk.PhotoImage(file=image_path)
                         resized_image = image.subsample(image.width() // 60, image.height() // 60)
                         self.images.append(resized_image)
-
-                        # Definimos etiquetas para el tipo de jugador y ficha.
-                        name_parts = piece_name.split('_')
-                        player = name_parts[0]      # e.g. white
-                        piece_type = name_parts[1]  # e.g. king
+                        
+                        current_player = 'WHITE' if piece.isupper() else 'BLACK'
 
                         self.canvas.create_image(
-                            x, y, image=resized_image, tags=('piece', player, piece_type))
-
-                        # Actualizamos la matriz colocando en la posición dada la ficha.
-                        self.matrix[i][j] = (self.piece_score[piece_type], player)
+                            x, y, image=resized_image, tags=('piece', piece, current_player))
 
 
 # ------------------------------------------------------------------------------
@@ -300,7 +234,7 @@ class Board:
             self._focus_square(self.origin_x, self.origin_y)
 
             # Señalamos los posibles movimientos.
-            self._focus_moves()
+            # self._focus_moves()
 
 
     def _dragging(self, event):
@@ -330,6 +264,10 @@ class Board:
             self.last_x = x
             self.last_y = y
 
+    def _get_node(self, pos):
+        x, y = pos
+        pos = "" + ['a','b','c','d','e','f','g','h'][x] + f"{8-y}"
+        return  pos
 
     def _release(self, event):
         """
@@ -344,22 +282,21 @@ class Board:
 
         # Obtenemos los movimientos permitidos de la ficha con relación
         # a la posición inicial.
-        moves = self._get_moves(self.origin_x, self.origin_y)
+        #moves = self._get_moves(self.origin_x, self.origin_y)
+        
+        nodeI = self._get_node(self._get_pos(self.origin_x, self.origin_y))
+        nodeF = self._get_node([row, col])
+        move = chess.Move.from_uci(f"{nodeI}{nodeF}") if nodeI != nodeF else None
 
         # Si la ficha seleccionada se mueve a una celda dentro del tablero, vacía y que está dentro de los movimientos permitidos.
-        if self._is_within_board(dest_x, dest_y) and self._is_empty(row, col) and (row, col) in moves and self.selected_piece:
+        if self._is_within_board(dest_x, dest_y) and move and move in self.board.legal_moves and self.selected_piece:
             # Obtenemos las coordenadas del centro de la última celda por la que pasó.
             centered_x, centered_y = self._get_center_coords(row, col)
 
             # Mueve la ficha seleccionada al centro de la celda dada.
             self.canvas.coords(self.selected_piece, centered_x, centered_y)
 
-            # Actualizamos la matrix que representa el tablero de juego.
-            origin_row, origin_col = self._get_pos(self.origin_x, self.origin_y)
-            row, col = self._get_pos(centered_x, centered_y)
-
-            self.matrix[origin_row][origin_col] = (0, 0)
-            self.matrix[row][col] = (self._get_selected_piece_score(), self._get_selected_piece_owner())
+            self.board.push(move)
 
             # Enfocamos la celda final del movimiento.
             self._focus_square(dest_x, dest_y)
@@ -402,7 +339,59 @@ class Board:
                     self.canvas.unbind('<ButtonRelease-1>')
 
                 # Si no es un rey, eliminamos la ficha comida del tablero.
-                self.canvas.delete(piece_removed)
+                print(self.canvas.gettags(piece_removed))
+
+                if 'piece' in self.canvas.gettags(piece_removed):
+                    if 'black' in self.canvas.gettags(piece_removed):
+                        if 'pawn' in self.canvas.gettags(piece_removed):
+                            print(self.canvas.gettags(piece_removed))
+                            # Obtener las etiquetas actuales de piece_removed
+                            etiquetas_actuales = self.canvas.gettags(piece_removed)
+
+                            # Eliminar las etiquetas existentes de piece_removed
+                            for etiqueta in etiquetas_actuales:
+                                self.canvas.dtag(piece_removed, etiqueta)
+
+                            # Agregar las nuevas etiquetas a piece_removed
+                            nuevas_etiquetas = ['piece', 'white', 'pawn']
+                            for etiqueta in nuevas_etiquetas:
+                                self.canvas.addtag_withtag(etiqueta, piece_removed)
+
+                            nueva_imagen = tk.PhotoImage(file= self.image_paths.white_pawn)
+                            self.canvas.itemconfigure(piece_removed, image=nueva_imagen)
+                            print(self.canvas.gettags(piece_removed))
+                    
+                            
+
+
+                        if 'king' in self.canvas.gettags(piece_removed):
+                            print('king')
+                        if 'rook' in self.canvas.gettags(piece_removed):
+                            print('rook')
+                        if 'queen' in self.canvas.gettags(piece_removed):
+                            print('queen')
+                        if 'bishop' in self.canvas.gettags(piece_removed):
+                            print('bishop')
+                        if 'knight' in self.canvas.gettags(piece_removed):
+                            print('knight')
+
+                    elif 'white' in self.canvas.gettags(piece_removed):
+
+                        if 'pawn' in self.canvas.gettags(piece_removed):
+                            print('pawn')
+                        if 'king' in self.canvas.gettags(piece_removed):
+                            print('king')
+                        if 'rook' in self.canvas.gettags(piece_removed):
+                            print('rook')
+                        if 'queen' in self.canvas.gettags(piece_removed):
+                            print('queen')
+                        if 'bishop' in self.canvas.gettags(piece_removed):
+                            print('bishop')
+                        if 'knight' in self.canvas.gettags(piece_removed):
+                            print('knight')
+                #self.canvas.delete(piece_removed)
+
+                
 
             # Actualizamos al jugador que le toca mover.
             self._set_turn(dest_x, dest_y)
